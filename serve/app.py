@@ -1,45 +1,15 @@
-from flask import Flask
-import boto3
-
+from flask import Flask, request, jsonify
+import sys, os
+sys.path.append(os.getcwd() + '/core/interact')
+import query
 
 
 app = Flask(__name__)
 
-dynamodb = boto3.resource('dynamodb', region_name='us-west-2', endpoint_url="http://localhost:8000")
-
-
-
 
 @app.route('/')
 def hello_world():
-    table = dynamodb.create_table(
-        TableName='Movies',
-        KeySchema=[
-            {
-                'AttributeName': 'year',
-                'KeyType': 'HASH'  #Partition key
-            },
-            {
-                'AttributeName': 'title',
-                'KeyType': 'RANGE'  #Sort key
-            }
-        ],
-        AttributeDefinitions=[
-            {
-                'AttributeName': 'year',
-                'AttributeType': 'N'
-            },
-            {
-                'AttributeName': 'title',
-                'AttributeType': 'S'
-            },
-
-        ],
-        ProvisionedThroughput={
-            'ReadCapacityUnits': 10,
-            'WriteCapacityUnits': 10
-            }
-    )
-
-    print("Table status:", table.table_status)
-    return 'Hello, World!'
+    table_name = request.args.get('table')
+    kanji = request.args.get('kanji')
+    data = query.queryTable(table_name, kanji)
+    return jsonify(data)
